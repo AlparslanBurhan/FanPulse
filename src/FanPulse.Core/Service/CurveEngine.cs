@@ -28,31 +28,30 @@ public sealed class CurveEngine
         _controller = controller;
     }
 
-    /// <summary>Sıralı eğri üzerinde doğrusal interpolasyon.</summary>
+    /// <summary>
+    /// Doğrusal interpolasyon. Eğrinin sıcaklığa göre SIRALI olması sözleşmedir:
+    /// editör ve ConfigStore.Load bu değişmezi kurar; burada yeniden sıralanmaz.
+    /// </summary>
     public static float Evaluate(IReadOnlyList<CurvePoint> curve, float temp)
     {
         if (curve.Count == 0)
             return 100f;
+        if (temp <= curve[0].Temp)
+            return curve[0].Percent;
+        if (temp >= curve[^1].Temp)
+            return curve[^1].Percent;
 
-        var sorted = curve.OrderBy(p => p.Temp).ToList();
-
-        if (temp <= sorted[0].Temp)
-            return sorted[0].Percent;
-        if (temp >= sorted[^1].Temp)
-            return sorted[^1].Percent;
-
-        for (var i = 0; i < sorted.Count - 1; i++)
+        for (var i = 1; i < curve.Count; i++)
         {
-            var a = sorted[i];
-            var b = sorted[i + 1];
-            if (temp >= a.Temp && temp <= b.Temp)
-            {
-                var t = (temp - a.Temp) / (b.Temp - a.Temp);
-                return a.Percent + t * (b.Percent - a.Percent);
-            }
+            if (temp > curve[i].Temp)
+                continue;
+
+            var a = curve[i - 1];
+            var b = curve[i];
+            return a.Percent + (temp - a.Temp) / (b.Temp - a.Temp) * (b.Percent - a.Percent);
         }
 
-        return sorted[^1].Percent;
+        return curve[^1].Percent;
     }
 
     /// <summary>Eğri profillerini bir kez değerlendirip gerekli yazmaları yapar.</summary>

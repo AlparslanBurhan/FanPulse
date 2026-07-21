@@ -11,14 +11,15 @@ public sealed class TempItemViewModel : ObservableObject
         Id = id;
         Name = name;
         Hardware = hardware;
+        FullName = $"{name}  ({hardware})";
     }
 
     public string Id { get; }
     public string Name { get; }
     public string Hardware { get; }
 
-    /// <summary>Sensör seçim kutusunda gösterilen ad.</summary>
-    public string FullName => $"{Name}  ({Hardware})";
+    /// <summary>Sensör seçim kutusunda gösterilen ad (bir kez kurulur).</summary>
+    public string FullName { get; }
 
     public float? Celsius
     {

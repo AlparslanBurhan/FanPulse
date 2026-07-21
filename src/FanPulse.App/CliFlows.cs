@@ -16,17 +16,13 @@ internal static class CliFlows
         if (instance is null)
             return 2; // Zaten bir FanPulse örneği çalışıyor; ona karışma.
 
-        var fixedProfiles = config.Profiles.Where(p => p.Mode == FanMode.Fixed).ToList();
-        if (fixedProfiles.Count == 0)
+        if (!config.Profiles.Any(p => p.Mode == FanMode.Fixed))
             return 0;
 
         using var hardware = new HardwareService();
         hardware.Open();
 
-        var controller = new FanController(hardware) { MinSpeedFloor = config.MinSpeedFloor };
-        foreach (var profile in fixedProfiles)
-            controller.ApplyFixed(profile);
-
+        new FanController(hardware).ApplyAllFixed(config);
         return 0;
     }
 }

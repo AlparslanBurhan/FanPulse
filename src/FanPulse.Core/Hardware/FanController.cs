@@ -24,6 +24,14 @@ public sealed class FanController
     public bool ApplyFixed(FanProfile profile) =>
         SetPercent(profile.FanId, profile.FixedPercent, profile.AllowZero);
 
+    /// <summary>Config'deki tüm sabit profilleri (taban dahil) tek noktadan uygular.</summary>
+    public void ApplyAllFixed(AppConfig config)
+    {
+        MinSpeedFloor = config.MinSpeedFloor;
+        foreach (var profile in config.Profiles.Where(p => p.Mode == FanMode.Fixed))
+            ApplyFixed(profile);
+    }
+
     public bool ReleaseToBios(string fanId) => _hardware.TryReleaseFan(fanId);
 
     public float ClampPercent(float percent, bool allowZero)

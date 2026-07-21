@@ -1,20 +1,24 @@
 namespace FanPulse.Core;
 
 /// <summary>
-/// Tek süreç garantisi (named mutex) ve çalışan headless servise durdurma
-/// sinyali gönderme (named event).
+/// Tek süreç garantisi ve çalışan headless servise durdurma sinyali gönderme.
+///
+/// Kilit nesnesi olarak Mutex değil EventWaitHandle kullanılır: sahiplik
+/// (thread-affinity) semantiğine ihtiyaç yok — tek gereken "createdNew" bilgisi
+/// ve tanıtıcı ömrü. Böylece Dispose herhangi bir thread'den güvenle çağrılabilir
+/// ve edinme işlemi arka plan thread'ine taşınabilir.
 /// </summary>
 public sealed class SingleInstance : IDisposable
 {
-    private const string MutexName = @"Global\FanPulse";
+    private const string MarkerName = @"Global\FanPulse.Instance";
     private const string StopEventName = @"Global\FanPulse.Stop";
 
-    private readonly Mutex _mutex;
+    private readonly EventWaitHandle _marker;
     private readonly EventWaitHandle _stopEvent;
 
-    private SingleInstance(Mutex mutex, EventWaitHandle stopEvent)
+    private SingleInstance(EventWaitHandle marker, EventWaitHandle stopEvent)
     {
-        _mutex = mutex;
+        _marker = marker;
         _stopEvent = stopEvent;
     }
 
@@ -24,15 +28,17 @@ public sealed class SingleInstance : IDisposable
     /// <summary>Kilidi almayı dener; başka bir FanPulse örneği çalışıyorsa null döner.</summary>
     public static SingleInstance? TryAcquire()
     {
-        var mutex = new Mutex(initiallyOwned: true, MutexName, out var createdNew);
+        var marker = new EventWaitHandle(
+            false, EventResetMode.ManualReset, MarkerName, out var createdNew);
+
         if (!createdNew)
         {
-            mutex.Dispose();
+            marker.Dispose();
             return null;
         }
 
         var stopEvent = new EventWaitHandle(false, EventResetMode.ManualReset, StopEventName);
-        return new SingleInstance(mutex, stopEvent);
+        return new SingleInstance(marker, stopEvent);
     }
 
     /// <summary>Çalışan örneğe durdurma sinyali gönderir. Örnek yoksa false.</summary>
@@ -56,7 +62,6 @@ public sealed class SingleInstance : IDisposable
     public void Dispose()
     {
         _stopEvent.Dispose();
-        _mutex.ReleaseMutex();
-        _mutex.Dispose();
+        _marker.Dispose();
     }
 }

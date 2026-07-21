@@ -27,6 +27,11 @@ public partial class FanDetailView : UserControl
     private int _dragIndex = -1;
     private bool _plotStyled;
 
+    // Scatter'ın bağlı olduğu diziler: sürükleme sırasında yerinde güncellenir,
+    // yeniden inşa yalnızca bağlama/ekleme/silmede olur.
+    private double[] _xs = [];
+    private double[] _ys = [];
+
     public FanDetailView()
     {
         InitializeComponent();
@@ -37,7 +42,7 @@ public partial class FanDetailView : UserControl
         CurvePlot.MouseUp += OnPlotMouseUp;
         CurvePlot.MouseRightButtonUp += OnPlotRightClick;
         CurvePlot.MouseDoubleClick += OnPlotDoubleClick;
-        CurvePlot.Loaded += (_, _) => { StylePlot(); Redraw(); };
+        CurvePlot.Loaded += (_, _) => { StylePlot(); RebuildPlot(); };
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -70,13 +75,13 @@ public partial class FanDetailView : UserControl
             _fan.PropertyChanged += OnFanPropertyChanged;
 
         _dragIndex = -1;
-        Redraw();
+        RebuildPlot();
     }
 
     private void OnFanPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(FanItemViewModel.IsCurve) && _fan is { IsCurve: true })
-            Redraw();
+            RebuildPlot();
     }
 
     private void StylePlot()
@@ -96,21 +101,20 @@ public partial class FanDetailView : UserControl
         CurvePlot.UserInputProcessor.IsEnabled = false;
     }
 
-    private void Redraw()
+    /// <summary>Yalnızca bağlama, nokta ekleme/silme ve mod değişiminde çağrılır.</summary>
+    private void RebuildPlot()
     {
         var plt = CurvePlot.Plot;
         plt.Clear();
 
         if (_fan is not null && _fan.CurvePoints.Count > 0)
         {
-            var sorted = _fan.CurvePoints.OrderBy(p => p.Temp).ToList();
-            _fan.CurvePoints.Clear();
-            _fan.CurvePoints.AddRange(sorted);
+            _fan.CurvePoints.Sort((a, b) => a.Temp.CompareTo(b.Temp));
 
-            var xs = sorted.Select(p => (double)p.Temp).ToArray();
-            var ys = sorted.Select(p => (double)p.Percent).ToArray();
+            _xs = _fan.CurvePoints.Select(p => (double)p.Temp).ToArray();
+            _ys = _fan.CurvePoints.Select(p => (double)p.Percent).ToArray();
 
-            var scatter = plt.Add.Scatter(xs, ys);
+            var scatter = plt.Add.Scatter(_xs, _ys);
             scatter.Color = CurveColor;
             scatter.LineWidth = 2;
             scatter.MarkerSize = 10;
@@ -120,22 +124,23 @@ public partial class FanDetailView : UserControl
         CurvePlot.Refresh();
     }
 
-    private Coordinates GetCoordinates(MouseEventArgs e)
+    /// <summary>DPI ölçekli fare konumu → ScottPlot pikseli (tek doğruluk kaynağı).</summary>
+    private Pixel ToPixel(MouseEventArgs e)
     {
         var pos = e.GetPosition(CurvePlot);
         var scale = CurvePlot.DisplayScale;
-        var pixel = new Pixel((float)(pos.X * scale), (float)(pos.Y * scale));
-        return CurvePlot.Plot.GetCoordinates(pixel);
+        return new Pixel((float)(pos.X * scale), (float)(pos.Y * scale));
     }
+
+    private Coordinates GetCoordinates(MouseEventArgs e) =>
+        CurvePlot.Plot.GetCoordinates(ToPixel(e));
 
     private int FindNearestPoint(MouseEventArgs e)
     {
         if (_fan is null)
             return -1;
 
-        var pos = e.GetPosition(CurvePlot);
-        var scale = CurvePlot.DisplayScale;
-        var mouse = new Pixel((float)(pos.X * scale), (float)(pos.Y * scale));
+        var mouse = ToPixel(e);
 
         for (var i = 0; i < _fan.CurvePoints.Count; i++)
         {
@@ -163,7 +168,7 @@ public partial class FanDetailView : UserControl
 
     private void OnPlotMouseMove(object sender, MouseEventArgs e)
     {
-        if (_dragIndex < 0 || _fan is null)
+        if (_dragIndex < 0 || _fan is null || _dragIndex >= _xs.Length)
             return;
 
         var coords = GetCoordinates(e);
@@ -172,10 +177,15 @@ public partial class FanDetailView : UserControl
         var minTemp = _dragIndex > 0 ? points[_dragIndex - 1].Temp + 1 : 0;
         var maxTemp = _dragIndex < points.Count - 1 ? points[_dragIndex + 1].Temp - 1 : 100;
 
-        points[_dragIndex].Temp = Math.Clamp((float)Math.Round(coords.X), minTemp, maxTemp);
-        points[_dragIndex].Percent = Math.Clamp((float)Math.Round(coords.Y), 0, 100);
+        var point = points[_dragIndex];
+        point.Temp = Math.Clamp((float)Math.Round(coords.X), minTemp, maxTemp);
+        point.Percent = Math.Clamp((float)Math.Round(coords.Y), 0, 100);
 
-        Redraw();
+        // Kıskaç sıralamayı koruduğundan yeniden inşa gerekmez:
+        // scatter'ın bağlı olduğu dizileri yerinde güncelle, sadece yeniden çiz.
+        _xs[_dragIndex] = point.Temp;
+        _ys[_dragIndex] = point.Percent;
+        CurvePlot.Refresh();
     }
 
     private void OnPlotMouseUp(object sender, MouseButtonEventArgs e)
@@ -197,7 +207,7 @@ public partial class FanDetailView : UserControl
             return;
 
         _fan.CurvePoints.RemoveAt(index);
-        Redraw();
+        RebuildPlot();
     }
 
     private void OnPlotDoubleClick(object sender, MouseButtonEventArgs e)
@@ -217,6 +227,6 @@ public partial class FanDetailView : UserControl
             Percent = Math.Clamp((float)Math.Round(coords.Y), 0, 100),
         });
 
-        Redraw();
+        RebuildPlot();
     }
 }

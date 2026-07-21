@@ -3,18 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:FanPulse.App.Views"
         xmlns:loc="clr-namespace:FanPulse.App.Localization"
-        xmlns:common="clr-namespace:FanPulse.App.Common"
         Title="FanPulse"
         Icon="Assets/fanpulse.ico"
         Width="1040" Height="680"
         MinWidth="860" MinHeight="560"
         Background="{StaticResource Bg}"
         WindowStartupLocation="CenterScreen">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis" />
-        <common:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
-    </Window.Resources>
-
     <Grid Margin="14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

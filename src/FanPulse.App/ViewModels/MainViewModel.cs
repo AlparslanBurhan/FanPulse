@@ -38,6 +38,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Config = config;
         _controller.MinSpeedFloor = Config.MinSpeedFloor;
 
+        Array.Fill(ChartCpu, double.NaN);
+        Array.Fill(ChartGpu, double.NaN);
+        Array.Fill(ChartSystem, double.NaN);
+
         FanItemViewModel.DefaultSensorProvider = () => _chartCpuId ?? Temps.FirstOrDefault()?.Id;
 
         _timer = new DispatcherTimer(DispatcherPriority.Background)
@@ -55,9 +59,10 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<TempItemViewModel> Temps { get; } = new();
     public ObservableCollection<FanItemViewModel> Fans { get; } = new();
 
-    public List<double> ChartCpu { get; } = new();
-    public List<double> ChartGpu { get; } = new();
-    public List<double> ChartSystem { get; } = new();
+    // Sabit kapasiteli kayan tamponlar (eski→yeni); boş hücreler NaN.
+    public double[] ChartCpu { get; } = new double[ChartCapacity];
+    public double[] ChartGpu { get; } = new double[ChartCapacity];
+    public double[] ChartSystem { get; } = new double[ChartCapacity];
 
     public event Action? ChartUpdated;
     public event Action<string>? TrayTooltipChanged;
@@ -177,18 +182,22 @@ public sealed class MainViewModel : ObservableObject, IDisposable
                 return snap;
             });
 
+            // Tek geçişte O(1) erişim sözlükleri; aynı sözlük grafik ve tooltip'e paylaşılır.
+            var tempById = snapshot.Temperatures.ToDictionary(t => t.Id, t => t.Celsius);
+            var fanById = snapshot.Fans.ToDictionary(f => f.ControlId);
+
             foreach (var temp in Temps)
-                temp.Celsius = snapshot.Temperatures.FirstOrDefault(t => t.Id == temp.Id)?.Celsius;
+                temp.Celsius = tempById.GetValueOrDefault(temp.Id);
 
             foreach (var fan in Fans)
             {
-                var reading = snapshot.Fans.FirstOrDefault(f => f.ControlId == fan.ControlId);
+                var reading = fanById.GetValueOrDefault(fan.ControlId);
                 fan.Rpm = reading?.Rpm;
                 fan.ControlPercent = reading?.ControlPercent;
             }
 
-            PushChart();
-            TrayTooltipChanged?.Invoke(BuildTooltip());
+            PushChart(tempById);
+            TrayTooltipChanged?.Invoke(BuildTooltip(tempById));
         }
         catch
         {
@@ -200,19 +209,19 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void PushChart()
+    private void PushChart(Dictionary<string, float?> tempById)
     {
-        Append(ChartCpu, _chartCpuId);
-        Append(ChartGpu, _chartGpuId);
-        Append(ChartSystem, _chartSystemId);
+        Shift(ChartCpu, _chartCpuId);
+        Shift(ChartGpu, _chartGpuId);
+        Shift(ChartSystem, _chartSystemId);
         ChartUpdated?.Invoke();
 
-        void Append(List<double> buffer, string? id)
+        void Shift(double[] buffer, string? id)
         {
-            var value = id is null ? null : Temps.FirstOrDefault(t => t.Id == id)?.Celsius;
-            buffer.Add(value ?? double.NaN);
-            if (buffer.Count > ChartCapacity)
-                buffer.RemoveAt(0);
+            Array.Copy(buffer, 1, buffer, 0, buffer.Length - 1);
+            buffer[^1] = id is not null && tempById.GetValueOrDefault(id) is { } celsius
+                ? celsius
+                : double.NaN;
         }
     }
 
@@ -230,15 +239,15 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _chartSystemId = Temps.FirstOrDefault(t => t.Name == "System")?.Id;
     }
 
-    private string BuildTooltip()
+    private string BuildTooltip(Dictionary<string, float?> tempById)
     {
         var parts = new List<string>();
 
-        var cpu = Temps.FirstOrDefault(t => t.Id == _chartCpuId)?.Celsius;
+        var cpu = _chartCpuId is null ? null : tempById.GetValueOrDefault(_chartCpuId);
         if (cpu is not null)
             parts.Add($"CPU {cpu:F0}°C");
 
-        var gpu = Temps.FirstOrDefault(t => t.Id == _chartGpuId)?.Celsius;
+        var gpu = _chartGpuId is null ? null : tempById.GetValueOrDefault(_chartGpuId);
         if (gpu is not null)
             parts.Add($"GPU {gpu:F0}°C");
 
@@ -265,15 +274,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
                 .Concat(_orphanProfiles)
                 .ToList();
 
-            _controller.MinSpeedFloor = Config.MinSpeedFloor;
             ConfigStore.Save(Config);
 
             // BIOS'a geri alınan fanları serbest bırak.
             foreach (var fan in Fans.Where(f => f.Mode == FanMode.Bios && previouslyManaged.Contains(f.ControlId)))
                 _controller.ReleaseToBios(fan.ControlId);
 
-            foreach (var profile in Config.Profiles.Where(p => p.Mode == FanMode.Fixed))
-                _controller.ApplyFixed(profile);
+            _controller.ApplyAllFixed(Config);
 
             if (Config.HasCurveProfiles)
                 _engine.Tick(Config);

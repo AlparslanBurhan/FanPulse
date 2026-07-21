@@ -18,7 +18,12 @@ public static class ConfigStore
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
-    public static string GetConfigPath()
+    // Yol süreç ömründe değişmez; yazılabilirlik probu yalnızca ilk erişimde çalışır.
+    private static readonly Lazy<string> CachedPath = new(ResolveConfigPath);
+
+    public static string GetConfigPath() => CachedPath.Value;
+
+    private static string ResolveConfigPath()
     {
         var exeDir = Path.GetDirectoryName(Environment.ProcessPath);
         if (exeDir is not null)
@@ -43,7 +48,14 @@ public static class ConfigStore
         try
         {
             var json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<AppConfig>(json, JsonOptions) ?? new AppConfig();
+            var config = JsonSerializer.Deserialize<AppConfig>(json, JsonOptions) ?? new AppConfig();
+
+            // Sıralılık değişmezi giriş noktasında bir kez kurulur (el ile
+            // düzenlenmiş JSON'a karşı); CurveEngine.Evaluate sıralı varsayar.
+            foreach (var profile in config.Profiles)
+                profile.Curve.Sort((a, b) => a.Temp.CompareTo(b.Temp));
+
+            return config;
         }
         catch (JsonException)
         {

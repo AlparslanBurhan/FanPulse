@@ -50,6 +50,9 @@ public partial class DashboardView : UserControl
         TrendPlot.Refresh();
     }
 
+    // Not: Scatter'lar bilinçli olarak her tikte yeniden kurulur; kalıcı diziye
+    // bağlamak NaN boşluklarının çizimini ScottPlot'a bırakmayı gerektirirdi ve
+    // scatter NaN içeren veriyle garanti vermez. 0,5 Hz'de bu maliyet önemsizdir.
     private void RenderChart()
     {
         if (_vm is null)
@@ -68,17 +71,17 @@ public partial class DashboardView : UserControl
         plt.Axes.SetLimits(-(MainViewModel.ChartCapacity - 1) * 2, 0, yMin, yMax);
         TrendPlot.Refresh();
 
-        void AddSeries(List<double> buffer, string label, Color color)
+        void AddSeries(double[] buffer, string label, Color color)
         {
-            var xs = new List<double>();
-            var ys = new List<double>();
+            var xs = new List<double>(buffer.Length);
+            var ys = new List<double>(buffer.Length);
 
-            for (var i = 0; i < buffer.Count; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 if (double.IsNaN(buffer[i]))
                     continue;
 
-                xs.Add(-(buffer.Count - 1 - i) * 2); // saniye cinsinden geçmiş
+                xs.Add(-(buffer.Length - 1 - i) * 2); // saniye cinsinden geçmiş
                 ys.Add(buffer[i]);
             }
 

@@ -10,6 +10,9 @@ namespace FanPulse.Core.Hardware;
 /// "Ayarla ve kapat" davranışı için, kontrol yazılmış bir oturumda Close çağrılmaz
 /// (bkz. <see cref="KeepSettingsOnExit"/>); süreç sonlanınca sürücü tanıtıcılarını
 /// işletim sistemi serbest bırakır ve çip son yazılan değerlerle çalışmaya devam eder.
+///
+/// Sensör kümesi Open() sonrası değişmez; kimlik → sensör indeksi bir kez kurulur,
+/// tüm aramalar O(1), kimlik stringleri süreç ömründe bir kez üretilir.
 /// </summary>
 public sealed class HardwareService : IDisposable
 {
@@ -18,6 +21,10 @@ public sealed class HardwareService : IDisposable
     private readonly object _sync = new();
     private bool _opened;
     private bool _controlWritten;
+
+    private Dictionary<string, ISensor>? _sensorsById;
+    private List<(string Id, ISensor Sensor, string Hardware)>? _tempSensors;
+    private List<(string ControlId, ISensor Control, ISensor? Rpm, string Hardware)>? _fanPairs;
 
     /// <summary>true ise (varsayılan) kontrol yazılmış oturumlarda Dispose, Close çağırmaz.</summary>
     public bool KeepSettingsOnExit { get; set; } = true;
@@ -43,6 +50,7 @@ public sealed class HardwareService : IDisposable
         }
 
         Update();
+        BuildIndex();
     }
 
     /// <summary>Tüm donanım sensörlerini yeniden okur.</summary>
@@ -59,69 +67,35 @@ public sealed class HardwareService : IDisposable
         if (refresh)
             Update();
 
-        var temps = new List<TempReading>();
-        var fans = new List<FanReading>();
-
         lock (_sync)
         {
-            foreach (var hardware in AllHardware())
-            {
-                var sensors = hardware.Sensors;
-                foreach (var sensor in sensors)
-                {
-                    if (sensor.SensorType == SensorType.Temperature)
-                    {
-                        temps.Add(new TempReading(
-                            sensor.Identifier.ToString(),
-                            sensor.Name,
-                            hardware.Name,
-                            sensor.Value));
-                    }
-                    else if (sensor.SensorType == SensorType.Control && sensor.Control is not null)
-                    {
-                        var rpm = sensors.FirstOrDefault(s =>
-                            s.SensorType == SensorType.Fan && s.Index == sensor.Index);
+            if (_tempSensors is null || _fanPairs is null)
+                return new HardwareSnapshot(DateTime.Now, [], []);
 
-                        fans.Add(new FanReading(
-                            sensor.Identifier.ToString(),
-                            sensor.Name,
-                            rpm?.Value,
-                            sensor.Value));
-                    }
-                }
-            }
+            var temps = new List<TempReading>(_tempSensors.Count);
+            foreach (var (id, sensor, hardware) in _tempSensors)
+                temps.Add(new TempReading(id, sensor.Name, hardware, sensor.Value));
+
+            var fans = new List<FanReading>(_fanPairs.Count);
+            foreach (var (controlId, control, rpm, _) in _fanPairs)
+                fans.Add(new FanReading(controlId, control.Name, rpm?.Value, control.Value));
+
+            return new HardwareSnapshot(DateTime.Now, temps, fans);
         }
-
-        return new HardwareSnapshot(DateTime.Now, temps, fans);
     }
 
     /// <summary>Kontrol edilebilir fan başlıklarını (Control sensörlerini) listeler.</summary>
     public IReadOnlyList<FanChannel> GetFanChannels()
     {
-        var channels = new List<FanChannel>();
-
         lock (_sync)
         {
-            foreach (var hardware in AllHardware())
-            {
-                foreach (var sensor in hardware.Sensors)
-                {
-                    if (sensor.SensorType != SensorType.Control || sensor.Control is null)
-                        continue;
-
-                    var rpm = hardware.Sensors.FirstOrDefault(s =>
-                        s.SensorType == SensorType.Fan && s.Index == sensor.Index);
-
-                    channels.Add(new FanChannel(
-                        sensor.Identifier.ToString(),
-                        sensor.Name,
-                        hardware.Name,
-                        rpm?.Identifier.ToString()));
-                }
-            }
+            return _fanPairs is null
+                ? []
+                : _fanPairs
+                    .Select(f => new FanChannel(
+                        f.ControlId, f.Control.Name, f.Hardware, f.Rpm?.Identifier.ToString()))
+                    .ToList();
         }
-
-        return channels;
     }
 
     /// <summary>Bir fan kontrolüne yüzde değeri yazar. Değer çağıran tarafça sınırlandırılmış olmalıdır.</summary>
@@ -161,18 +135,42 @@ public sealed class HardwareService : IDisposable
         }
     }
 
-    private ISensor? FindSensor(string identifier)
-    {
-        foreach (var hardware in AllHardware())
-        {
-            foreach (var sensor in hardware.Sensors)
-            {
-                if (sensor.Identifier.ToString() == identifier)
-                    return sensor;
-            }
-        }
+    private ISensor? FindSensor(string identifier) =>
+        _sensorsById?.GetValueOrDefault(identifier);
 
-        return null;
+    /// <summary>Open() sonrası bir kez: kimlik sözlüğü, sıcaklık listesi ve fan çiftleri kurulur.</summary>
+    private void BuildIndex()
+    {
+        lock (_sync)
+        {
+            var byId = new Dictionary<string, ISensor>();
+            var temps = new List<(string, ISensor, string)>();
+            var fanPairs = new List<(string, ISensor, ISensor?, string)>();
+
+            foreach (var hardware in AllHardware())
+            {
+                foreach (var sensor in hardware.Sensors)
+                {
+                    var id = sensor.Identifier.ToString();
+                    byId[id] = sensor;
+
+                    if (sensor.SensorType == SensorType.Temperature)
+                    {
+                        temps.Add((id, sensor, hardware.Name));
+                    }
+                    else if (sensor.SensorType == SensorType.Control && sensor.Control is not null)
+                    {
+                        var rpm = hardware.Sensors.FirstOrDefault(s =>
+                            s.SensorType == SensorType.Fan && s.Index == sensor.Index);
+                        fanPairs.Add((id, sensor, rpm, hardware.Name));
+                    }
+                }
+            }
+
+            _sensorsById = byId;
+            _tempSensors = temps;
+            _fanPairs = fanPairs;
+        }
     }
 
     /// <summary>Ana donanımlar + alt donanımlar (anakart → Super I/O) düzleştirilmiş.</summary>

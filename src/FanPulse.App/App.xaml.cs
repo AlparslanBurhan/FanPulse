@@ -3,6 +3,7 @@ using FanPulse.App.Localization;
 using FanPulse.App.Tray;
 using FanPulse.App.ViewModels;
 using FanPulse.Core;
+using FanPulse.Core.Config;
 using FanPulse.Core.Hardware;
 using FanPulse.Core.Service;
 
@@ -21,13 +22,15 @@ public partial class App : Application
     public bool StartTrayOnly { get; init; }
 
     /// <summary>Program.Main'de yüklenen config; ikinci kez diskten okumamak için taşınır.</summary>
-    public Core.Config.AppConfig? InitialConfig { get; init; }
+    public AppConfig? InitialConfig { get; init; }
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        _instance = AcquireTakingOver();
+        // Devralma beklemesi (en kötü ~5 sn) UI thread'ini bloklamasın.
+        // SingleInstance thread-affinity'siz olduğundan başka thread'de edinmek güvenli.
+        _instance = await Task.Run(AcquireTakingOver);
         if (_instance is null)
         {
             MessageBox.Show(Loc.T("AlreadyRunning"), "FanPulse");
@@ -41,7 +44,7 @@ public partial class App : Application
         var controller = new FanController(hardware);
         var engine = new CurveEngine(hardware, controller);
         _vm = new MainViewModel(hardware, controller, engine,
-            InitialConfig ?? Core.Config.ConfigStore.Load());
+            InitialConfig ?? ConfigStore.Load());
         _vm.TrayTooltipChanged += text => _tray?.UpdateTooltip(text);
 
         if (StartTrayOnly)
@@ -133,7 +136,7 @@ public partial class App : Application
 
         try
         {
-            Core.Config.ConfigStore.Save(config);
+            ConfigStore.Save(config);
         }
         catch
         {

@@ -133,7 +133,10 @@ public sealed class FanItemViewModel : ObservableObject
         _allowZero = profile.AllowZero;
         _sensorId = profile.SensorId;
         CurvePoints.Clear();
-        CurvePoints.AddRange(profile.Curve.OrderBy(p => p.Temp));
+        // Derin kopya: VM düzenleme tamponu ile Config'in aktif eğrisi aynı
+        // CurvePoint nesnelerini paylaşmamalı — aksi halde sürükleme, kaydetmeden
+        // çalışan motoru etkiler (tek buton sözleşmesi ihlali + veri yarışı).
+        CurvePoints.AddRange(profile.Curve.OrderBy(p => p.Temp).Select(Clone));
 
         if (_mode == FanMode.Curve)
             EnsureCurveDefaults();
@@ -147,8 +150,10 @@ public sealed class FanItemViewModel : ObservableObject
         FixedPercent = FixedPercent,
         AllowZero = AllowZero,
         SensorId = SensorId,
-        Curve = CurvePoints.OrderBy(p => p.Temp).ToList(),
+        Curve = CurvePoints.OrderBy(p => p.Temp).Select(Clone).ToList(),
     };
+
+    private static CurvePoint Clone(CurvePoint p) => new() { Temp = p.Temp, Percent = p.Percent };
 
     private void EnsureCurveDefaults()
     {
