@@ -56,9 +56,11 @@ public sealed class CurveEngine
     }
 
     /// <summary>Eğri profillerini bir kez değerlendirip gerekli yazmaları yapar.</summary>
-    public void Tick(AppConfig config)
+    /// <param name="refreshHardware">GUI zaten bu tick içinde Update çağırdıysa false geçilir.</param>
+    public void Tick(AppConfig config, bool refreshHardware = true)
     {
-        _hardware.Update();
+        if (refreshHardware)
+            _hardware.Update();
 
         foreach (var profile in config.Profiles.Where(p => p.Mode == FanMode.Curve))
         {

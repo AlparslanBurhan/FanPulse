@@ -1,0 +1,123 @@
+<UserControl x:Class="FanPulse.App.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sp="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+             xmlns:loc="clr-namespace:FanPulse.App.Localization"
+             Loaded="OnLoaded">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Canlı sıcaklık paneli -->
+        <Border Grid.Row="0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="{loc:Loc Temps}"
+                           Foreground="{StaticResource TextDim}"
+                           FontSize="12" Margin="2,0,0,6" />
+                <ItemsControl ItemsSource="{Binding Temps}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource Panel2}" CornerRadius="6"
+                                    Padding="10,6" Margin="2,2,6,2" MinWidth="96">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Name}"
+                                               Foreground="{StaticResource TextDim}"
+                                               FontSize="11" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Display}"
+                                               Foreground="{StaticResource Text}"
+                                               FontSize="19" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Kayan sıcaklık grafiği -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,12,0,0">
+            <StackPanel>
+                <TextBlock Text="{loc:Loc ChartTitle}"
+                           Foreground="{StaticResource TextDim}"
+                           FontSize="12" Margin="2,0,0,6" />
+                <sp:WpfPlot x:Name="TrendPlot" Height="180" />
+            </StackPanel>
+        </Border>
+
+        <!-- Fan listesi -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,12,0,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top"
+                           Text="{loc:Loc Fans}"
+                           Foreground="{StaticResource TextDim}"
+                           FontSize="12" Margin="2,0,0,6" />
+                <ListBox ItemsSource="{Binding Fans}"
+                         SelectedItem="{Binding SelectedFan}"
+                         Background="Transparent" BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Margin" Value="0,0,0,6" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Bd"
+                                                Background="{StaticResource Panel2}"
+                                                BorderBrush="Transparent" BorderThickness="1.5"
+                                                CornerRadius="6" Padding="12,8">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="BorderBrush"
+                                                        Value="{StaticResource Accent}" />
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#FF343A4C" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding Name}"
+                                               Foreground="{StaticResource Text}"
+                                               FontSize="14" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding StatusText}"
+                                               Foreground="{StaticResource TextDim}" FontSize="12" />
+                                </StackPanel>
+                                <Border Grid.Column="1"
+                                        Background="{StaticResource Panel}"
+                                        CornerRadius="10" Padding="10,3"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ModeBadge}"
+                                               Foreground="{StaticResource Accent}"
+                                               FontSize="11" FontWeight="SemiBold" />
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

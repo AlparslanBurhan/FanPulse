@@ -1,0 +1,46 @@
+<Window x:Class="FanPulse.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:FanPulse.App.Localization"
+        Title="{loc:Loc Settings}"
+        Width="420" SizeToContent="Height"
+        Background="{StaticResource Bg}"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <StackPanel Margin="18">
+        <CheckBox Content="{loc:Loc ApplyOnStartup}"
+                  IsChecked="{Binding Config.ApplyOnStartup}"
+                  Margin="0,0,0,12" />
+
+        <CheckBox Content="{loc:Loc ShowTray}"
+                  IsChecked="{Binding Config.ShowTrayIcon}"
+                  Margin="0,0,0,12" />
+
+        <TextBlock Text="{loc:Loc MinFloor}"
+                   Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,0,0,4" />
+        <TextBox Text="{Binding Config.MinSpeedFloor}"
+                 Width="80" HorizontalAlignment="Left"
+                 Background="{StaticResource Panel2}"
+                 Foreground="{StaticResource Text}"
+                 BorderBrush="{StaticResource Border}"
+                 Padding="6,4" Margin="0,0,0,12" />
+
+        <TextBlock Text="{loc:Loc Language}"
+                   Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,0,0,4" />
+        <ComboBox SelectedValuePath="Tag"
+                  SelectedValue="{Binding Config.Language}"
+                  Width="160" HorizontalAlignment="Left"
+                  Margin="0,0,0,18">
+            <ComboBoxItem Tag="tr" Content="Türkçe" />
+            <ComboBoxItem Tag="en" Content="English" />
+        </ComboBox>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="{loc:Loc SaveApply}"
+                    Style="{StaticResource AccentButton}"
+                    Click="OnSaveClick" Margin="0,0,8,0" />
+            <Button Content="{loc:Loc Close}" Click="OnCloseClick" />
+        </StackPanel>
+    </StackPanel>
+</Window>

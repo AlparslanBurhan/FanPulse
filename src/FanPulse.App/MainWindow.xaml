@@ -1,16 +1,84 @@
 <Window x:Class="FanPulse.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:FanPulse.App.Views"
+        xmlns:loc="clr-namespace:FanPulse.App.Localization"
+        xmlns:common="clr-namespace:FanPulse.App.Common"
         Title="FanPulse"
-        Width="900" Height="600"
-        MinWidth="700" MinHeight="450"
+        Icon="Assets/fanpulse.ico"
+        Width="1040" Height="680"
+        MinWidth="860" MinHeight="560"
         Background="{StaticResource Bg}"
         WindowStartupLocation="CenterScreen">
-    <Grid>
-        <!-- Aşama 3: Dashboard + canlı sıcaklık paneli buraya gelecek -->
-        <TextBlock Text="FanPulse"
-                   Foreground="{StaticResource Text}"
-                   FontSize="28" FontWeight="SemiBold"
-                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <common:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+    </Window.Resources>
+
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Üst şerit -->
+        <DockPanel Grid.Row="0" Margin="2,0,2,12">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <Image Source="Assets/fanpulse.ico" Width="22" Height="22" Margin="0,0,8,0" />
+                <TextBlock Text="{loc:Loc AppTitle}"
+                           Foreground="{StaticResource Text}"
+                           FontSize="20" FontWeight="SemiBold" />
+            </StackPanel>
+            <Button Content="{loc:Loc Settings}"
+                    DockPanel.Dock="Right" HorizontalAlignment="Right"
+                    Click="OnSettingsClick" />
+        </DockPanel>
+
+        <!-- İçerik -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="380" />
+            </Grid.ColumnDefinitions>
+
+            <views:DashboardView Grid.Column="0" />
+            <views:FanDetailView Grid.Column="1" Margin="12,0,0,0" />
+
+            <!-- Yükleniyor örtüsü -->
+            <Border Grid.ColumnSpan="2"
+                    Background="{StaticResource Bg}"
+                    Visibility="{Binding IsHardwareReady, Converter={StaticResource InvBoolToVis}}">
+                <TextBlock Text="{loc:Loc Loading}"
+                           Foreground="{StaticResource TextDim}" FontSize="16"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+        </Grid>
+
+        <!-- Alt şerit -->
+        <Grid Grid.Row="2" Margin="2,12,2,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="{loc:Loc PawnIoMissing}"
+                       Foreground="{StaticResource Danger}" TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       Visibility="{Binding IsPawnIoMissing, Converter={StaticResource BoolToVis}}" />
+
+            <TextBlock Grid.Column="1"
+                       Text="{Binding StatusMessage}"
+                       Foreground="{StaticResource TextDim}"
+                       VerticalAlignment="Center" Margin="0,0,14,0" />
+
+            <Button Grid.Column="2"
+                    Style="{StaticResource AccentButton}"
+                    Content="{loc:Loc SaveApply}"
+                    MinWidth="160"
+                    Command="{Binding SaveApplyCommand}" />
+        </Grid>
     </Grid>
 </Window>

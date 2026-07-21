@@ -1,11 +1,14 @@
+using System.Globalization;
 using FanPulse.Core;
+using FanPulse.Core.Config;
 
 namespace FanPulse.App;
 
 /// <summary>
 /// Giriş noktası ve mod yönlendirme:
 ///   (argümansız)  → GUI
-///   --startup     → config'i uygula; eğri yoksa çık, varsa headless servis
+///   --startup     → sadece sabit hızlar varsa WPF yüklemeden yaz ve çık;
+///                   eğri varsa tepsi simgeli headless servis
 ///   --stop        → çalışan headless servisi durdur
 /// </summary>
 public static class Program
@@ -16,10 +19,19 @@ public static class Program
         if (args.Contains("--stop", StringComparer.OrdinalIgnoreCase))
             return SingleInstance.SignalStop() ? 0 : 1;
 
-        if (args.Contains("--startup", StringComparer.OrdinalIgnoreCase))
-            return CliFlows.RunStartup();
+        var config = ConfigStore.Load();
 
-        var app = new App();
+        var culture = new CultureInfo(
+            string.Equals(config.Language, "en", StringComparison.OrdinalIgnoreCase) ? "en" : "tr");
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+
+        var startup = args.Contains("--startup", StringComparer.OrdinalIgnoreCase);
+
+        if (startup && !config.HasCurveProfiles)
+            return CliFlows.ApplyFixedAndExit(config);
+
+        var app = new App { StartTrayOnly = startup };
         app.InitializeComponent();
         return app.Run();
     }

@@ -14,7 +14,13 @@
     <AssemblyVersion>0.1.0</AssemblyVersion>
     <FileVersion>0.1.0</FileVersion>
     <Product>FanPulse</Product>
+    <NeutralLanguage>en</NeutralLanguage>
+    <ApplicationIcon>Assets\fanpulse.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\fanpulse.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ScottPlot.WPF" Version="5.0.55" />

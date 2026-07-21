@@ -1,0 +1,91 @@
+<UserControl x:Class="FanPulse.App.Views.FanDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sp="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+             xmlns:loc="clr-namespace:FanPulse.App.Localization"
+             xmlns:common="clr-namespace:FanPulse.App.Common">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <common:InverseBoolToVisibilityConverter x:Key="InvBoolToVis" />
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource Card}">
+        <Grid>
+            <!-- Fan seçilmemiş -->
+            <TextBlock Text="{loc:Loc NoFanSelected}"
+                       Foreground="{StaticResource TextDim}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       TextWrapping="Wrap" TextAlignment="Center" Margin="20"
+                       Visibility="{Binding HasSelectedFan, Converter={StaticResource InvBoolToVis}}" />
+
+            <!-- Fan detayı -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding HasSelectedFan, Converter={StaticResource BoolToVis}}">
+                <StackPanel DataContext="{Binding SelectedFan}">
+                    <TextBlock Text="{Binding Name}"
+                               Foreground="{StaticResource Text}"
+                               FontSize="18" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding StatusText}"
+                               Foreground="{StaticResource TextDim}"
+                               FontSize="12" Margin="0,2,0,12" />
+
+                    <!-- Mod seçimi -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <RadioButton Content="{loc:Loc ModeBios}" IsChecked="{Binding IsBios}" />
+                        <RadioButton Content="{loc:Loc ModeFixed}" IsChecked="{Binding IsFixed}" />
+                        <RadioButton Content="{loc:Loc ModeCurve}" IsChecked="{Binding IsCurve}" />
+                    </StackPanel>
+
+                    <!-- Sabit hız -->
+                    <Border Background="{StaticResource Panel2}" CornerRadius="6" Padding="12"
+                            Visibility="{Binding IsFixed, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Text="{loc:Loc FixedSpeed}"
+                                           Foreground="{StaticResource TextDim}" FontSize="12" />
+                                <TextBlock Text="{Binding FixedPercentText}"
+                                           Foreground="{StaticResource Text}"
+                                           FontSize="16" FontWeight="SemiBold"
+                                           DockPanel.Dock="Right" HorizontalAlignment="Right" />
+                            </DockPanel>
+                            <Slider Value="{Binding FixedPercent, UpdateSourceTrigger=PropertyChanged}"
+                                    Margin="0,8,0,10" />
+                            <Button Content="{loc:Loc Apply}"
+                                    HorizontalAlignment="Right"
+                                    Command="{Binding DataContext.ApplyFixedCommand,
+                                              RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Eğri -->
+                    <Border Background="{StaticResource Panel2}" CornerRadius="6" Padding="12"
+                            Visibility="{Binding IsCurve, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <TextBlock Text="{loc:Loc SourceSensor}"
+                                       Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,0,0,4" />
+                            <ComboBox ItemsSource="{Binding DataContext.Temps,
+                                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      DisplayMemberPath="FullName"
+                                      SelectedValuePath="Id"
+                                      SelectedValue="{Binding SensorId}"
+                                      Margin="0,0,0,10" />
+                            <sp:WpfPlot x:Name="CurvePlot" Height="210" />
+                            <TextBlock Text="{loc:Loc CurveHint}"
+                                       Foreground="{StaticResource TextDim}"
+                                       FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <CheckBox Content="{loc:Loc AllowZero}"
+                              IsChecked="{Binding AllowZero}"
+                              Margin="0,12,0,0" />
+
+                    <Button Content="{loc:Loc ReleaseToBios}"
+                            Margin="0,14,0,0" HorizontalAlignment="Left"
+                            Command="{Binding DataContext.ReleaseCommand,
+                                      RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>

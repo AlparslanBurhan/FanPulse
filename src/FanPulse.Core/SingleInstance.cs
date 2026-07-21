@@ -50,6 +50,9 @@ public sealed class SingleInstance : IDisposable
         return false;
     }
 
+    /// <summary>Durdurma sinyali göz ardı edildiğinde (GUI açıkken) bayrağı sıfırlar.</summary>
+    public void ResetStop() => _stopEvent.Reset();
+
     public void Dispose()
     {
         _stopEvent.Dispose();
