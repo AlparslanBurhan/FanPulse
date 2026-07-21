@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>FanPulse.App</RootNamespace>
+    <AssemblyName>FanPulse</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>FanPulse.App.Program</StartupObject>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <FileVersion>0.1.0</FileVersion>
+    <Product>FanPulse</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.55" />
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FanPulse.Core\FanPulse.Core.csproj" />
+  </ItemGroup>
+
+</Project>

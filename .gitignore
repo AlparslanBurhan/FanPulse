@@ -1,0 +1,24 @@
+# Build sonuçları
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+artifacts/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.user
+*.suo
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+
+# Test sonuçları
+TestResults/
+*.trx
+
+# Çalışma zamanı
+*.log
+fanpulse.json
