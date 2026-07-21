@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace FanPulse.Core.Config;
 
 public sealed class AppConfig
@@ -21,6 +23,7 @@ public sealed class AppConfig
 
     public List<FanProfile> Profiles { get; set; } = new();
 
+    [JsonIgnore]
     public bool HasCurveProfiles => Profiles.Any(p => p.Mode == FanMode.Curve);
 
     public FanProfile? FindProfile(string fanId) =>
