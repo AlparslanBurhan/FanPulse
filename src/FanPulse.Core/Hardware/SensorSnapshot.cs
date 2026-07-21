@@ -12,5 +12,5 @@ public sealed record HardwareSnapshot(
     IReadOnlyList<TempReading> Temperatures,
     IReadOnlyList<FanReading> Fans);
 
-/// <summary>Kontrol edilebilir bir fan başlığı: kontrol sensörü + eşleşen RPM sensörü.</summary>
-public sealed record FanChannel(string ControlId, string Name, string HardwareName, string? RpmSensorId);
+/// <summary>Kontrol edilebilir bir fan başlığı.</summary>
+public sealed record FanChannel(string ControlId, string Name, string HardwareName);

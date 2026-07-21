@@ -29,6 +29,16 @@ public sealed class CurveEngine
     }
 
     /// <summary>
+    /// Profil değişiminde histerezis/hata durumunu sıfırlar; sonraki tick koşulsuz yazar.
+    /// Yalnızca Tick ile aynı seriden (RefreshAsync kritik bölgesi) çağrılmalıdır.
+    /// </summary>
+    public void Reset()
+    {
+        _lastAppliedTemp.Clear();
+        _failedReads.Clear();
+    }
+
+    /// <summary>
     /// Doğrusal interpolasyon. Eğrinin sıcaklığa göre SIRALI olması sözleşmedir:
     /// editör ve ConfigStore.Load bu değişmezi kurar; burada yeniden sıralanmaz.
     /// </summary>

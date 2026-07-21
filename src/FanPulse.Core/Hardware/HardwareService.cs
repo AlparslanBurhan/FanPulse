@@ -92,8 +92,7 @@ public sealed class HardwareService : IDisposable
             return _fanPairs is null
                 ? []
                 : _fanPairs
-                    .Select(f => new FanChannel(
-                        f.ControlId, f.Control.Name, f.Hardware, f.Rpm?.Identifier.ToString()))
+                    .Select(f => new FanChannel(f.ControlId, f.Control.Name, f.Hardware))
                     .ToList();
         }
     }

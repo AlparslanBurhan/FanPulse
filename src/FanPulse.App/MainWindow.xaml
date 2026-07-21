@@ -43,9 +43,16 @@
             <Border Grid.ColumnSpan="2"
                     Background="{StaticResource Bg}"
                     Visibility="{Binding IsHardwareReady, Converter={StaticResource InvBoolToVis}}">
-                <TextBlock Text="{loc:Loc Loading}"
-                           Foreground="{StaticResource TextDim}" FontSize="16"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="{loc:Loc Loading}"
+                               Foreground="{StaticResource TextDim}" FontSize="16"
+                               HorizontalAlignment="Center" />
+                    <!-- Başlatma hatası buraya düşer; normalde boştur -->
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="{StaticResource Danger}" FontSize="13"
+                               Margin="0,10,0,0" MaxWidth="520"
+                               TextWrapping="Wrap" TextAlignment="Center" />
+                </StackPanel>
             </Border>
         </Grid>
 

@@ -7,6 +7,7 @@
 
   <data name="AppTitle" xml:space="preserve"><value>FanPulse</value></data>
   <data name="Loading" xml:space="preserve"><value>Donanım başlatılıyor…</value></data>
+  <data name="HardwareInitFailed" xml:space="preserve"><value>Donanım başlatılamadı</value></data>
   <data name="PawnIoMissing" xml:space="preserve"><value>PawnIO sürücüsü bulunamadı — anakart sensörlerine erişilemiyor. pawnio.eu adresinden kurup FanPulse'ı yeniden başlat.</value></data>
   <data name="Temps" xml:space="preserve"><value>Sıcaklıklar</value></data>
   <data name="Fans" xml:space="preserve"><value>Fanlar</value></data>

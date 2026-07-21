@@ -113,12 +113,22 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         IReadOnlyList<FanChannel> channels = [];
         HardwareSnapshot? snapshot = null;
 
-        await Task.Run(() =>
+        try
         {
-            _hardware.Open();
-            channels = _hardware.GetFanChannels();
-            snapshot = _hardware.GetSnapshot(refresh: false);
-        });
+            await Task.Run(() =>
+            {
+                _hardware.Open();
+                channels = _hardware.GetFanChannels();
+                snapshot = _hardware.GetSnapshot(refresh: false);
+            });
+        }
+        catch (Exception e)
+        {
+            // Fire-and-forget zincirinde istisna kaybolmasın: nedeni kullanıcıya göster,
+            // UI tutarlı (IsHardwareReady=false) durumda kalsın.
+            StatusMessage = $"{Loc.T("HardwareInitFailed")}: {e.Message}";
+            return;
+        }
 
         foreach (var temp in snapshot!.Temperatures)
         {
@@ -151,16 +161,20 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _timer.Start();
 
         // Exe taşındıysa açılış görevindeki yolu sessizce onar.
+        // COM çağrısı UI thread'ini tıkamasın diye arka planda; sonucu UI'ı ilgilendirmez.
         if (Config.ApplyOnStartup && Environment.ProcessPath is { } exePath)
         {
-            try
+            _ = Task.Run(() =>
             {
-                StartupTaskManager.EnsurePathCurrent(exePath);
-            }
-            catch
-            {
-                // Görev onarılamazsa kullanıcı Kaydet ile yeniden kurabilir.
-            }
+                try
+                {
+                    StartupTaskManager.EnsurePathCurrent(exePath);
+                }
+                catch
+                {
+                    // Görev onarılamazsa kullanıcı Kaydet ile yeniden kurabilir.
+                }
+            });
         }
     }
 
@@ -283,7 +297,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             _controller.ApplyAllFixed(Config);
 
             if (Config.HasCurveProfiles)
-                _engine.Tick(Config);
+            {
+                // Motorun tek giriş noktası RefreshAsync: _refreshBusy kilidi sayesinde
+                // arka plandaki tick ile çakışma yapısal olarak imkânsız. Reset,
+                // yeni eğrinin histerezise takılmadan ilk tick'te uygulanmasını sağlar.
+                _engine.Reset();
+                _ = RefreshAsync();
+            }
 
             var exePath = Environment.ProcessPath;
             if (exePath is not null)
