@@ -20,6 +20,9 @@ public partial class App : Application
     /// <summary>--startup ile eğri profili varken: pencere olmadan tepsi servisi olarak başla.</summary>
     public bool StartTrayOnly { get; init; }
 
+    /// <summary>Program.Main'de yüklenen config; ikinci kez diskten okumamak için taşınır.</summary>
+    public Core.Config.AppConfig? InitialConfig { get; init; }
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -37,7 +40,8 @@ public partial class App : Application
         var hardware = new HardwareService();
         var controller = new FanController(hardware);
         var engine = new CurveEngine(hardware, controller);
-        _vm = new MainViewModel(hardware, controller, engine);
+        _vm = new MainViewModel(hardware, controller, engine,
+            InitialConfig ?? Core.Config.ConfigStore.Load());
         _vm.TrayTooltipChanged += text => _tray?.UpdateTooltip(text);
 
         if (StartTrayOnly)

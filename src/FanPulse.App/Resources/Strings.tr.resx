@@ -14,7 +14,6 @@
   <data name="ModeBios" xml:space="preserve"><value>BIOS</value></data>
   <data name="ModeFixed" xml:space="preserve"><value>Sabit</value></data>
   <data name="ModeCurve" xml:space="preserve"><value>Eğri</value></data>
-  <data name="NotConnected" xml:space="preserve"><value>bağlı değil</value></data>
   <data name="NoFanSelected" xml:space="preserve"><value>Ayarlamak için listeden bir fan seç</value></data>
   <data name="FixedSpeed" xml:space="preserve"><value>Sabit hız</value></data>
   <data name="BiosHint" xml:space="preserve"><value>Bu fan BIOS'taki eğriyle yönetilir. Seçimi onaylamak için Kaydet ve Uygula'ya bas.</value></data>

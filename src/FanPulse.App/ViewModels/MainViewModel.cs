@@ -29,13 +29,13 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private string? _chartGpuId;
     private string? _chartSystemId;
 
-    public MainViewModel(HardwareService hardware, FanController controller, CurveEngine engine)
+    public MainViewModel(HardwareService hardware, FanController controller, CurveEngine engine, AppConfig config)
     {
         _hardware = hardware;
         _controller = controller;
         _engine = engine;
 
-        Config = ConfigStore.Load();
+        Config = config;
         _controller.MinSpeedFloor = Config.MinSpeedFloor;
 
         FanItemViewModel.DefaultSensorProvider = () => _chartCpuId ?? Temps.FirstOrDefault()?.Id;
@@ -144,6 +144,19 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         IsHardwareReady = true;
         _timer.Start();
+
+        // Exe taşındıysa açılış görevindeki yolu sessizce onar.
+        if (Config.ApplyOnStartup && Environment.ProcessPath is { } exePath)
+        {
+            try
+            {
+                StartupTaskManager.EnsurePathCurrent(exePath);
+            }
+            catch
+            {
+                // Görev onarılamazsa kullanıcı Kaydet ile yeniden kurabilir.
+            }
+        }
     }
 
     private async Task RefreshAsync()

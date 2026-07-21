@@ -12,7 +12,6 @@
         <SolidColorBrush x:Key="TextDim" Color="#FF9AA0AE" />
         <SolidColorBrush x:Key="Accent" Color="#FF4C8DFF" />
         <SolidColorBrush x:Key="AccentSoft" Color="#FF32405E" />
-        <SolidColorBrush x:Key="Warn" Color="#FFE8B34C" />
         <SolidColorBrush x:Key="Danger" Color="#FFE85C5C" />
 
         <!-- Kart -->

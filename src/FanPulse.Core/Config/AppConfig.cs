@@ -2,8 +2,8 @@ namespace FanPulse.Core.Config;
 
 public sealed class AppConfig
 {
-    /// <summary>Arayüz dili: "tr" veya "en".</summary>
-    public string Language { get; set; } = "tr";
+    /// <summary>Arayüz dili: "en" (varsayılan) veya "tr".</summary>
+    public string Language { get; set; } = "en";
 
     /// <summary>Windows açılışında ayarların otomatik uygulanması (Görev Zamanlayıcı görevi).</summary>
     public bool ApplyOnStartup { get; set; }

@@ -22,7 +22,7 @@ public static class Program
         var config = ConfigStore.Load();
 
         var culture = new CultureInfo(
-            string.Equals(config.Language, "en", StringComparison.OrdinalIgnoreCase) ? "en" : "tr");
+            string.Equals(config.Language, "tr", StringComparison.OrdinalIgnoreCase) ? "tr" : "en");
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         CultureInfo.CurrentUICulture = culture;
 
@@ -31,7 +31,7 @@ public static class Program
         if (startup && !config.HasCurveProfiles)
             return CliFlows.ApplyFixedAndExit(config);
 
-        var app = new App { StartTrayOnly = startup };
+        var app = new App { StartTrayOnly = startup, InitialConfig = config };
         app.InitializeComponent();
         return app.Run();
     }
