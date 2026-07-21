@@ -11,11 +11,15 @@
     <AssemblyName>FanPulse</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <StartupObject>FanPulse.App.Program</StartupObject>
-    <AssemblyVersion>0.1.0</AssemblyVersion>
-    <FileVersion>0.1.0</FileVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
     <Product>FanPulse</Product>
     <NeutralLanguage>en</NeutralLanguage>
     <ApplicationIcon>Assets\fanpulse.ico</ApplicationIcon>
+    <!-- Tek dosya yayında bundle sıkıştırması: ~176 MB → ~70-80 MB.
+         Bedeli ilk açılışta küçük bir açma gecikmesidir. -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>

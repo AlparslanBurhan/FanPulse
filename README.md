@@ -26,6 +26,10 @@ MSI Center ships background services, telemetry and hundreds of megabytes of run
 - 🛡️ **Safety floor** — configurable minimum speed (default 20%); 0% must be explicitly allowed per fan.
 - 🌍 **English & Turkish UI** — switchable in Settings.
 
+## Download
+
+Grab the latest single-file `FanPulse.exe` from **[Releases](https://github.com/AlparslanBurhan/FanPulse/releases)** — no installation, no runtime required.
+
 ## Requirements
 
 - Windows 10/11 x64

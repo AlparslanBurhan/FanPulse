@@ -26,6 +26,10 @@ MSI Center; fanlarını döndürmek için arka plan servisleri, telemetri ve yü
 - 🛡️ **Güvenlik tabanı** — ayarlanabilir alt hız sınırı (varsayılan %20); %0 için fan başına açık izin gerekir.
 - 🌍 **İngilizce ve Türkçe arayüz** — Ayarlar'dan değiştirilebilir.
 
+## İndir
+
+Tek dosyalık güncel `FanPulse.exe`'yi **[Releases](https://github.com/AlparslanBurhan/FanPulse/releases)** sayfasından al — kurulum yok, runtime gerekmez.
+
 ## Gereksinimler
 
 - Windows 10/11 x64
