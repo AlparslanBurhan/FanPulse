@@ -14,6 +14,11 @@ public sealed class AppConfig
     /// <summary>Headless serviste tepsi simgesi gösterilsin mi.</summary>
     public bool ShowTrayIcon { get; set; } = true;
 
+    /// <summary>Son pencere boyutu; null ise varsayılan kullanılır.</summary>
+    public double? WindowWidth { get; set; }
+    public double? WindowHeight { get; set; }
+    public bool WindowMaximized { get; set; }
+
     public List<FanProfile> Profiles { get; set; } = new();
 
     public bool HasCurveProfiles => Profiles.Any(p => p.Mode == FanMode.Curve);

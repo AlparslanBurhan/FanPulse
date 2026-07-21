@@ -90,11 +90,51 @@ public partial class App : Application
         if (_window is null)
         {
             _window = new MainWindow { DataContext = _vm };
+            RestoreWindowBounds(_window);
+            _window.Closing += OnWindowClosing;
             _window.Closed += OnWindowClosed;
         }
 
         _window.Show();
         _window.Activate();
+    }
+
+    private void RestoreWindowBounds(MainWindow window)
+    {
+        var config = _vm!.Config;
+
+        if (config.WindowWidth is > 300 && config.WindowHeight is > 200)
+        {
+            window.Width = config.WindowWidth.Value;
+            window.Height = config.WindowHeight.Value;
+        }
+
+        if (config.WindowMaximized)
+            window.WindowState = WindowState.Maximized;
+    }
+
+    private void OnWindowClosing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (sender is not MainWindow window || _vm is null)
+            return;
+
+        var config = _vm.Config;
+        config.WindowMaximized = window.WindowState == WindowState.Maximized;
+
+        if (window.WindowState == WindowState.Normal)
+        {
+            config.WindowWidth = window.Width;
+            config.WindowHeight = window.Height;
+        }
+
+        try
+        {
+            Core.Config.ConfigStore.Save(config);
+        }
+        catch
+        {
+            // Pencere boyutu kaydedilemezse sessiz geç; kapanışı engelleme.
+        }
     }
 
     private void OnWindowClosed(object? sender, EventArgs e)
