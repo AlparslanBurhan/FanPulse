@@ -21,6 +21,22 @@ internal static class Program
     private static int Main()
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+        try
+        {
+            return Run();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"\nBEKLENMEYEN HATA:\n{e}");
+            Console.WriteLine("\nÇıkmak için bir tuşa bas...");
+            Console.ReadKey();
+            return 1;
+        }
+    }
+
+    private static int Run()
+    {
         Console.WriteLine("=== FanPulse PoC — Donanım Doğrulama Aracı ===\n");
 
         if (!PawnIo.IsInstalled())
