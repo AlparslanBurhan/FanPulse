@@ -17,8 +17,7 @@
   <data name="NotConnected" xml:space="preserve"><value>bağlı değil</value></data>
   <data name="NoFanSelected" xml:space="preserve"><value>Ayarlamak için listeden bir fan seç</value></data>
   <data name="FixedSpeed" xml:space="preserve"><value>Sabit hız</value></data>
-  <data name="Apply" xml:space="preserve"><value>Uygula</value></data>
-  <data name="ReleaseToBios" xml:space="preserve"><value>BIOS kontrolüne bırak</value></data>
+  <data name="BiosHint" xml:space="preserve"><value>Bu fan BIOS'taki eğriyle yönetilir. Seçimi onaylamak için Kaydet ve Uygula'ya bas.</value></data>
   <data name="SourceSensor" xml:space="preserve"><value>Kaynak sensör</value></data>
   <data name="AllowZero" xml:space="preserve"><value>%0'a izin ver (fan durdurma)</value></data>
   <data name="CurveHint" xml:space="preserve"><value>Çift tık: nokta ekle • Sürükle: taşı • Sağ tık: sil</value></data>

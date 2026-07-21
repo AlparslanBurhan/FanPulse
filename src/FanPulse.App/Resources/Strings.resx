@@ -17,8 +17,7 @@
   <data name="NotConnected" xml:space="preserve"><value>not connected</value></data>
   <data name="NoFanSelected" xml:space="preserve"><value>Select a fan from the list to configure it</value></data>
   <data name="FixedSpeed" xml:space="preserve"><value>Fixed speed</value></data>
-  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
-  <data name="ReleaseToBios" xml:space="preserve"><value>Return to BIOS control</value></data>
+  <data name="BiosHint" xml:space="preserve"><value>This fan is managed by the BIOS curve. Press Save &amp; Apply to confirm the selection.</value></data>
   <data name="SourceSensor" xml:space="preserve"><value>Source sensor</value></data>
   <data name="AllowZero" xml:space="preserve"><value>Allow 0% (fan stop)</value></data>
   <data name="CurveHint" xml:space="preserve"><value>Double-click: add point • Drag: move • Right-click: delete</value></data>

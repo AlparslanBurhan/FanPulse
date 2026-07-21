@@ -21,10 +21,7 @@
                    Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,0,0,4" />
         <TextBox Text="{Binding Config.MinSpeedFloor}"
                  Width="80" HorizontalAlignment="Left"
-                 Background="{StaticResource Panel2}"
-                 Foreground="{StaticResource Text}"
-                 BorderBrush="{StaticResource Border}"
-                 Padding="6,4" Margin="0,0,0,12" />
+                 Margin="0,0,0,12" />
 
         <TextBlock Text="{loc:Loc Language}"
                    Foreground="{StaticResource TextDim}" FontSize="12" Margin="0,0,0,4" />

@@ -36,6 +36,14 @@
                         <RadioButton Content="{loc:Loc ModeCurve}" IsChecked="{Binding IsCurve}" />
                     </StackPanel>
 
+                    <!-- BIOS modu bilgilendirmesi -->
+                    <Border Background="{StaticResource Panel2}" CornerRadius="6" Padding="12"
+                            Visibility="{Binding IsBios, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{loc:Loc BiosHint}"
+                                   Foreground="{StaticResource TextDim}" FontSize="12"
+                                   TextWrapping="Wrap" />
+                    </Border>
+
                     <!-- Sabit hız -->
                     <Border Background="{StaticResource Panel2}" CornerRadius="6" Padding="12"
                             Visibility="{Binding IsFixed, Converter={StaticResource BoolToVis}}">
@@ -49,11 +57,7 @@
                                            DockPanel.Dock="Right" HorizontalAlignment="Right" />
                             </DockPanel>
                             <Slider Value="{Binding FixedPercent, UpdateSourceTrigger=PropertyChanged}"
-                                    Margin="0,8,0,10" />
-                            <Button Content="{loc:Loc Apply}"
-                                    HorizontalAlignment="Right"
-                                    Command="{Binding DataContext.ApplyFixedCommand,
-                                              RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                    Margin="0,8,0,2" />
                         </StackPanel>
                     </Border>
 
@@ -78,12 +82,8 @@
 
                     <CheckBox Content="{loc:Loc AllowZero}"
                               IsChecked="{Binding AllowZero}"
-                              Margin="0,12,0,0" />
-
-                    <Button Content="{loc:Loc ReleaseToBios}"
-                            Margin="0,14,0,0" HorizontalAlignment="Left"
-                            Command="{Binding DataContext.ReleaseCommand,
-                                      RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                              Margin="0,12,0,0"
+                              Visibility="{Binding IsBios, Converter={StaticResource InvBoolToVis}}" />
                 </StackPanel>
             </ScrollViewer>
         </Grid>

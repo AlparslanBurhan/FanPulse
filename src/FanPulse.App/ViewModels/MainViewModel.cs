@@ -47,8 +47,6 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _timer.Tick += async (_, _) => await RefreshAsync();
 
         SaveApplyCommand = new RelayCommand(SaveApply, () => IsHardwareReady);
-        ApplyFixedCommand = new RelayCommand(ApplySelectedFixed, () => SelectedFan is { IsFixed: true });
-        ReleaseCommand = new RelayCommand(ReleaseSelected, () => SelectedFan is not null);
     }
 
     /// <summary>Kaydedilmiş (diskteki) yapılandırma. Save ile güncellenir.</summary>
@@ -65,8 +63,6 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public event Action<string>? TrayTooltipChanged;
 
     public RelayCommand SaveApplyCommand { get; }
-    public RelayCommand ApplyFixedCommand { get; }
-    public RelayCommand ReleaseCommand { get; }
 
     public FanItemViewModel? SelectedFan
     {
@@ -284,25 +280,6 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         {
             StatusMessage = e.Message;
         }
-    }
-
-    private void ApplySelectedFixed()
-    {
-        if (SelectedFan is not { } fan)
-            return;
-
-        _controller.SetPercent(fan.ControlId, fan.FixedPercent, fan.AllowZero);
-        StatusMessage = $"{fan.Name} → %{fan.FixedPercent:F0}  ({DateTime.Now:HH:mm:ss})";
-    }
-
-    private void ReleaseSelected()
-    {
-        if (SelectedFan is not { } fan)
-            return;
-
-        _controller.ReleaseToBios(fan.ControlId);
-        fan.Mode = FanMode.Bios;
-        StatusMessage = $"{fan.Name} → BIOS  ({DateTime.Now:HH:mm:ss})";
     }
 
     public void Dispose()

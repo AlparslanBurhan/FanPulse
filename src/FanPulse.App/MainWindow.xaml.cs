@@ -9,6 +9,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Common.DarkTitleBar.Apply(this);
     }
 
     private void OnSettingsClick(object sender, RoutedEventArgs e)

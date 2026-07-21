@@ -12,6 +12,7 @@ public partial class SettingsWindow : Window
         _vm = vm;
         DataContext = vm;
         InitializeComponent();
+        Common.DarkTitleBar.Apply(this);
     }
 
     private void OnSaveClick(object sender, RoutedEventArgs e)
